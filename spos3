@@ -1,0 +1,131 @@
+#include <iostream>
+#include <map>
+#include <vector>
+#include <sstream>
+using namespace std;
+
+struct Symbol {
+    int address;
+    bool defined;
+};
+
+int main() {
+    map<string, Symbol> SYMTAB;
+    vector<string> LITTAB;
+    int LC = 0;
+    string label, opcode, operand;
+
+    cout << "PASS-I of Two Pass Assembler\n\n";
+
+    // Sample input lines (can be replaced with file input)
+    string code[] = {
+        "START 200",
+        "MOVER AREG, ='5'",
+        "MOVEM AREG, X",
+        "L1 MOVER BREG, ='2'",
+        "ORIGIN L1+3",
+        "LTORG",
+        "NEXT ADD AREG, ='1'",
+        "SUB BREG, ='2'",
+        "BC LT, BACK",
+        "LTORG",
+        "BACK EQU L1",
+        "ORIGIN NEXT+5",
+        "MULT CREG, ='4'",
+        "STOP",
+        "X DS 1",
+        "END"
+    };
+
+    int n = sizeof(code) / sizeof(code[0]);
+    cout << "Intermediate Code:\n";
+
+    for (int i = 0; i < n; i++) {
+        label = opcode = operand = "";
+        stringstream ss(code[i]);
+        ss >> label;
+
+        // START
+        if (label == "START") {
+            ss >> LC;
+            cout << "(AD,01) (C," << LC << ")\n";
+            continue;
+        }
+
+        // END
+        if (label == "END") {
+            cout << "(AD,02)\n";
+            break;
+        }
+
+        // If no opcode, label is empty
+        if (label.back() == ':') label.pop_back();
+        if (label != "" && label != "START" && label != "END") {
+            ss >> opcode;
+        } else {
+            opcode = label;
+            label = "";
+        }
+
+        ss >> operand;
+
+        // If label exists, add to symbol table
+        if (!label.empty() && opcode != "EQU") {
+            SYMTAB[label] = {LC, true};
+        }
+
+        // Handle pseudo-ops
+        if (opcode == "ORIGIN") {
+            string sym; char plus; int val;
+            stringstream so(operand);
+            so >> sym >> plus >> val;
+            LC = SYMTAB[sym].address + val;
+            cout << "(AD,03) (" << sym << "+" << val << ")\n";
+        }
+        else if (opcode == "LTORG") {
+            cout << "(AD,04)\n";
+            for (auto lit : LITTAB) {
+                SYMTAB[lit] = {LC++, true};
+            }
+            LITTAB.clear();
+        }
+        else if (opcode == "EQU") {
+            SYMTAB[label].address = SYMTAB[operand].address;
+            cout << "(AD,05) (" << operand << ")\n";
+        }
+        else if (opcode == "DS") {
+            int size = stoi(operand);
+            SYMTAB[label] = {LC, true};
+            cout << "(DL,01) (C," << size << ")\n";
+            LC += size;
+        }
+        else if (opcode == "DC") {
+            cout << "(DL,02) (C," << operand << ")\n";
+            LC++;
+        }
+        else if (opcode == "STOP") {
+            cout << "(IS,00)\n";
+            LC++;
+        }
+        else if (opcode == "MOVER" || opcode == "MOVEM" || opcode == "ADD" ||
+                 opcode == "SUB" || opcode == "MULT" || opcode == "BC") {
+            cout << "(IS,xx) " << operand << "\n";
+            LC++;
+            if (operand.find("='") != string::npos)
+                LITTAB.push_back(operand);
+            else
+                SYMTAB[operand] = {0, false};
+        }
+    }
+
+    // Print tables
+    cout << "\nSYMTAB:\n";
+    for (auto &s : SYMTAB)
+        cout << s.first << "\t" << s.second.address << endl;
+
+    cout << "\nLITTAB:\n";
+    for (auto &l : LITTAB)
+        cout << l << endl;
+
+    return 0;
+}
