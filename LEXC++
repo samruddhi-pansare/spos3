@@ -1,0 +1,52 @@
+#include <iostream>
+#include <cctype>
+#include <string>
+using namespace std;
+
+bool isOperator(char ch) {
+    return ch=='+' || ch=='-' || ch=='*' || ch=='/' || ch=='=';
+}
+
+bool isPunctuation(char ch) {
+    return ch=='(' || ch==')' || ch=='{' || ch=='}' || ch==',' || ch==';';
+}
+
+int main() {
+    string expr;
+    cout << "Enter expression: ";
+    getline(cin, expr);
+
+    int n = expr.length();
+    for(int i=0; i<n; i++) {
+        if(isspace(expr[i])) continue;
+
+        // number
+        if(isdigit(expr[i])) {
+            string num;
+            while(i<n && isdigit(expr[i])) num += expr[i++];
+            i--;
+            cout << "NUMBER: " << num << endl;
+        }
+        // identifier
+        else if(isalpha(expr[i]) || expr[i]=='_') {
+            string id;
+            while(i<n && (isalnum(expr[i]) || expr[i]=='_')) id += expr[i++];
+            i--;
+            cout << "IDENTIFIER: " << id << endl;
+        }
+        // operator
+        else if(isOperator(expr[i])) {
+            cout << "OPERATOR: " << expr[i] << endl;
+        }
+        // punctuation
+        else if(isPunctuation(expr[i])) {
+            cout << "PUNCTUATION: " << expr[i] << endl;
+        }
+        // unknown
+        else {
+            cout << "UNKNOWN: " << expr[i] << endl;
+        }
+    }
+
+    return 0;
+}
