@@ -1,0 +1,66 @@
+#include <iostream>
+#include <vector>
+#include <string>
+using namespace std;
+
+int main() {
+    // Sample input program
+    vector<string> code = {
+        "START",
+        "MACRO",
+        "INCR &ARG1, &ARG2",
+        "ADD AREG, &ARG2",
+        "MEND",
+        "MACRO",
+        "DECR &ARG3, &ARG4",
+        "SUB AREG, &ARG3",
+        "MOVER CREG, &ARG4",
+        "MEND",
+        "INCR N1, N2",
+        "DECR N3, N4",
+        "END"
+    };
+
+    // Tables
+    vector<string> MNT, MDT, ALA;
+
+    cout << "PASS - I of Two Pass Macro Processor\n\n";
+
+    for (int i = 0; i < code.size(); i++) {
+        if (code[i] == "MACRO") {
+            string header = code[++i];
+            cout << "Processing Macro: " << header << endl;
+
+            // Add macro name to MNT
+            string name = header.substr(0, header.find(' '));
+            MNT.push_back(name);
+
+            // Extract arguments
+            string args = header.substr(header.find(' ') + 1);
+            ALA.push_back(args);
+
+            // Add body lines to MDT
+            i++;
+            while (code[i] != "MEND") {
+                MDT.push_back(code[i]);
+                i++;
+            }
+            MDT.push_back("MEND");
+        }
+    }
+
+    // Display Tables
+    cout << "\n--- MNT (Macro Name Table) ---\n";
+    for (int i = 0; i < MNT.size(); i++)
+        cout << i+1 << ". " << MNT[i] << endl;
+
+    cout << "\n--- MDT (Macro Definition Table) ---\n";
+    for (int i = 0; i < MDT.size(); i++)
+        cout << i+1 << ". " << MDT[i] << endl;
+
+    cout << "\n--- ALA (Argument List Array) ---\n";
+    for (int i = 0; i < ALA.size(); i++)
+        cout << i+1 << ". " << ALA[i] << endl;
+
+    return 0;
+}
