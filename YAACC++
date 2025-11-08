@@ -1,0 +1,61 @@
+#include <iostream>
+#include <string>
+#include <cctype>
+using namespace std;
+
+string expr;
+int pos = 0;
+
+int parseExpr(); // forward declaration
+
+int parseFactor() {
+    if (isdigit(expr[pos])) {
+        int val = 0;
+        while(pos < expr.size() && isdigit(expr[pos]))
+            val = val*10 + (expr[pos++] - '0');
+        return val;
+    } else if(expr[pos] == '(') {
+        pos++;
+        int val = parseExpr();
+        if(expr[pos] == ')') pos++;
+        else { cout << "Error: unmatched parentheses\n"; exit(1);}
+        return val;
+    } else if(expr[pos] == '-') {
+        pos++;
+        return -parseFactor();
+    } else {
+        cout << "Error: invalid character " << expr[pos] << endl;
+        exit(1);
+    }
+}
+
+int parseTerm() {
+    int val = parseFactor();
+    while(pos < expr.size()) {
+        if(expr[pos] == '*') { pos++; val *= parseFactor(); }
+        else if(expr[pos] == '/') { pos++; val /= parseFactor(); }
+        else break;
+    }
+    return val;
+}
+
+int parseExpr() {
+    int val = parseTerm();
+    while(pos < expr.size()) {
+        if(expr[pos] == '+') { pos++; val += parseTerm(); }
+        else if(expr[pos] == '-') { pos++; val -= parseTerm(); }
+        else break;
+    }
+    return val;
+}
+
+int main() {
+    cout << "Enter expression: ";
+    getline(cin, expr);
+    int value = parseExpr();
+    if(pos == expr.size())
+        cout << "Valid Expression. Value = " << value << endl;
+    else
+        cout << "Error: invalid expression at position " << pos << endl;
+    return 0;
+}
