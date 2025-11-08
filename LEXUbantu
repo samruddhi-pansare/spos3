@@ -1,0 +1,33 @@
+%{
+#include <iostream>
+using namespace std;
+%}
+
+%%
+[0-9]+          { cout << "NUMBER: " << yytext << endl; }
+[a-zA-Z_][a-zA-Z0-9_]* { cout << "IDENTIFIER: " << yytext << endl; }
+[+\-*/=]        { cout << "OPERATOR: " << yytext << endl; }
+[(){};,]        { cout << "PUNCTUATION: " << yytext << endl; }
+[ \t\n]+        ;  // ignore whitespace
+.               { cout << "UNKNOWN: " << yytext << endl; }
+%%
+
+int main(int argc, char **argv){
+    yylex();
+    return 0;
+}
+
+✅ How to Run on Ubuntu / Linux
+
+Save the file as token.l.
+
+Open terminal and run:
+
+flex token.l          # generates lex.yy.c
+g++ lex.yy.c -o token -lfl   # compile with C++ and link flex library
+./token                # run the program
+
+
+Then type an expression like:
+
+a = 5 + b * (c - 2);
