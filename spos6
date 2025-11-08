@@ -1,0 +1,83 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <algorithm>
+using namespace std;
+
+int main() {
+    cout << "PASS-II of Two Pass Macro Processor\n\n";
+
+    // --- Macro Definition Table (MDT) ---
+    vector<string> MDT = {
+        "MOVER AREG, &ARG1",
+        "ADD AREG, &ARG2",
+        "MEND",
+        "MOVER AREG, &ARG3",
+        "SUB AREG, &ARG4",
+        "MEND"
+    };
+
+    // --- Macro Name Table (MNT) ---
+    vector<pair<string, int>> MNT = { {"INCR", 0}, {"DECR", 3} };
+
+    // --- Input Assembly Program ---
+    vector<string> program = { "START", "INCR N1, N2", "DECR N3, N4", "END" };
+
+    // --- Output Program (Expanded Code) ---
+    vector<string> output;
+
+    for (string line : program) {
+        bool isMacro = false;
+
+        for (auto m : MNT) {
+            // If line starts with macro name
+            if (line.find(m.first) == 0) {
+                isMacro = true;
+
+                // Extract arguments after space
+                string args = "";
+                if (line.find(' ') != string::npos)
+                    args = line.substr(line.find(' ') + 1);
+
+                // Separate first and second argument
+                string arg1 = args.substr(0, args.find(','));
+                string arg2 = args.substr(args.find(',') + 1);
+
+                // Remove extra spaces
+                arg1.erase(remove(arg1.begin(), arg1.end(), ' '), arg1.end());
+                arg2.erase(remove(arg2.begin(), arg2.end(), ' '), arg2.end());
+
+                // Expand macro body using MDT
+                int i = m.second;
+                while (MDT[i] != "MEND") {
+                    string temp = MDT[i];
+
+                    // Replace arguments
+                    size_t pos;
+                    if ((pos = temp.find("&ARG1")) != string::npos)
+                        temp.replace(pos, 6, arg1);
+                    if ((pos = temp.find("&ARG2")) != string::npos)
+                        temp.replace(pos, 6, arg2);
+                    if ((pos = temp.find("&ARG3")) != string::npos)
+                        temp.replace(pos, 6, arg1);
+                    if ((pos = temp.find("&ARG4")) != string::npos)
+                        temp.replace(pos, 6, arg2);
+
+                    output.push_back(temp);
+                    i++;
+                }
+            }
+        }
+
+        // If not a macro line, copy as-is
+        if (!isMacro)
+            output.push_back(line);
+    }
+
+    // --- Final Expanded Program Output ---
+    cout << "--- Expanded Code ---\n";
+    for (auto &l : output)
+        cout << l << endl;
+
+    return 0;
+}
